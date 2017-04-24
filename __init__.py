@@ -27,26 +27,29 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	max_followers = 20                   # How many followers per user to collect
 	max_following = 20                     # how many follows to collect per user
-	max_collect_media = 10              # how many media items to be collected per person ?
+	max_collect_media = 100              # how many media items to be collected per person ?
 	max_collect_users = 20               # how many users in all to collect.
+	fifo = deque([])
 
 	# Connect
 	try:
 		if args.target:
-			usernames = [args.target]
-		elif args.targetfile:
-			usernames = open(args.targetfile, 'r')
+			fifo.extend([args.target])
+		# elif args.targetfile:
+		# 	with open(args.targetfile, 'r') as file:
+		# 		fifo.extend([line in file][1:])
 		else:
 			raise Exception('No crawl target given. Provide a username with -t option or file of usernames with -f')
 
 		print('Client version: %s' % client_version)
 		api = Client(args.username, args.password)
-		origin = api.username_info(usernames[0])
+		origin = api.username_info(fifo.popleft()) #only the first element can be a name, will be id from now on
 	except Exception as e:
 		print("unable to initiate crawl", e)
 	else:
 		user_id = origin['user']['pk']
-		print('Set Origin to', usernames[0], 'with ID', user_id)
+		username = origin['user']['username']
+		print('Set Origin to', username, 'with ID', user_id)
 
 	# open graph files
 	if not os.path.exists('./userdata/'):
@@ -55,9 +58,8 @@ if __name__ == '__main__':
 	user_details = open ("./userdata/user_details.csv",'a')
 	
 	
-	# fifo = deque([])
 
-	crawl(api, origin, max_following, max_followers, max_collect_users, max_collect_media)
+	crawl(api, origin, fifo, max_following, max_followers, max_collect_users, max_collect_media)
 
 	# close files
 	
