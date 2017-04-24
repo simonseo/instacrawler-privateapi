@@ -1,5 +1,6 @@
 from collections import deque
 import json
+import os
 from re import findall
 from time import time
 from random import sample, shuffle
@@ -11,11 +12,33 @@ def crawl(api, origin, fifo, config):
 	while len(visited_nodes) < config['max_collect_users'] and len(fifo) > 0:
 		user_id = fifo.popleft()
 		if user_id in visited_nodes: continue
-		visit_profile(api, user_id, config)
+
+
+		while True:
+			try:
+				visit_profile(api, user_id, config)
+			except Exception as e:
+				print(e)
+				if api.friendships_show(user_id)['is_private']: break
+			else:
+				break
+
 		visited_nodes.append(user_id)
-		following, followers = _get_community(api, user_id, config)
-		fifo.extend(randselect([u['pk'] for u in following], config['max_following']))
-		fifo.extend(randselect([u['pk'] for u in followers], config['max_followers']))
+
+		while True:
+			try:
+				following, followers = _get_community(api, user_id, config)
+			except Exception as e:
+				print(e)
+			else:
+				break
+		
+		try:
+			fifo.extend(randselect([u['pk'] for u in following], config['max_following']))
+			fifo.extend(randselect([u['pk'] for u in followers], config['max_followers']))
+		except Exception as e:
+			print(e)
+
 		for user_id in fifo:
 			try:
 				float(user_id)
@@ -32,6 +55,7 @@ def crawl(api, origin, fifo, config):
 
 def visit_profile(api, user_id, config):
 	profile = api.user_info(user_id)
+	print('visiting:', profile['user']['username'])
 	processed_profile = {
 		'user_id' : user_id,
 		'username' : profile['user']['username'],
@@ -44,6 +68,8 @@ def visit_profile(api, user_id, config):
 	feed = _get_posts(api, user_id, config)
 	posts = [visit_media(api, post) for post in feed]
 	processed_profile['posts'] = list(filter(lambda x: not x is None, posts))
+
+	if not os.path.exists('./profiles/'): os.makedirs('profiles')  
 	with open('profiles/' + str(user_id) + '.json', 'w') as file:
 		json.dump(processed_profile, file, indent=2)
 
@@ -58,7 +84,8 @@ def visit_media(api, post):
 		'comment_count' : post['comment_count'] if 'comment_count' in keys else 0,
 		'caption' : post['caption']['text'] if 'caption' in keys and post['caption'] is not None else ''
 	}
-	processed_media['tags'] = findall(r'#[A-Za-z0-9]*', processed_media['caption'])
+	processed_media['tags'] = findall(r'#[^\s]*', processed_media['caption'])
+	print(processed_media['tags'])
 	return processed_media
 
 def _get_posts(api, user_id, config):
@@ -96,6 +123,7 @@ def _get_community(api, user_id, config):
 		followers.extend(results.get('users', []))
 		next_max_id = results.get('next_max_id')
 
+	print(user_id, 'has', len(following), 'following and', len(followers), 'followers')
 	return following, followers
 
 def randselect(list, num):
@@ -104,3 +132,14 @@ def randselect(list, num):
 		return shuffle(list)
 	if l > 5*num: 
 		return sample(list[:5*num], num)
+
+def byteify(input):
+	if isinstance(input, dict):
+		return {byteify(key): byteify(value)
+				for key, value in input.iteritems()}
+	elif isinstance(input, list):
+		return [byteify(element) for element in input]
+	elif isinstance(input, unicode):
+		return input.encode('utf-8')
+	else:
+		return input

@@ -26,10 +26,10 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	config = {
-		'max_followers' : 20,                    # How many followers per user to collect
-		'max_following' : 20,                    # how many follows to collect per user
-		'max_collect_media' : 50,                # how many media items to be collected per person
-		'max_collect_users' : 1,               # how many users in all to collect.
+		'max_followers' : 3,                    # How many followers per user to collect
+		'max_following' : 3,                    # how many follows to collect per user
+		'max_collect_media' : 50,                # how many media items to be collected per person. If time is specified, this is ignored
+		'max_collect_users' : 100,               # how many users in all to collect.
 		'min_timestamp' : int(time() - 60*60*24*30*2)         # up to how recent you want the posts to be in seconds
 		# 'min_timestamp' : None
 	}
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 		api = Client(args.username, args.password)
 		origin = api.username_info(origin_name)
 	except Exception as e:
-		print("unable to initiate crawl:", e)
+		print("Unable to initiate API:", e)
 	else:
 		print('Set Origin to', origin_name, 'with ID', origin['user']['pk'])
 
