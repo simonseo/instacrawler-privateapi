@@ -1,8 +1,8 @@
 import json
 import os.path
 import argparse
+from time import time
 from collections import deque
-
 try:
 	from instagram_private_api import (
 		Client, __version__ as client_version)
@@ -25,16 +25,20 @@ if __name__ == '__main__':
 	# parser.add_argument('-debug', '--debug', action='store_true')
 
 	args = parser.parse_args()
-	max_followers = 20                   # How many followers per user to collect
-	max_following = 20                     # how many follows to collect per user
-	max_collect_media = 100              # how many media items to be collected per person ?
-	max_collect_users = 20               # how many users in all to collect.
+	config = {
+		'max_followers' : 20,                    # How many followers per user to collect
+		'max_following' : 20,                    # how many follows to collect per user
+		'max_collect_media' : 50,                # how many media items to be collected per person
+		'max_collect_users' : 1,               # how many users in all to collect.
+		'min_timestamp' : int(time() - 60*60*24*30*2)         # up to how recent you want the posts to be in seconds
+		# 'min_timestamp' : None
+	}
 	fifo = deque([])
 
 	# Connect
 	try:
 		if args.target:
-			fifo.extend([args.target])
+			origin_name = args.target
 		# elif args.targetfile:
 		# 	with open(args.targetfile, 'r') as file:
 		# 		fifo.extend([line in file][1:])
@@ -43,35 +47,22 @@ if __name__ == '__main__':
 
 		print('Client version: %s' % client_version)
 		api = Client(args.username, args.password)
-		origin = api.username_info(fifo.popleft()) #only the first element can be a name, will be id from now on
+		origin = api.username_info(origin_name)
 	except Exception as e:
-		print("unable to initiate crawl", e)
+		print("unable to initiate crawl:", e)
 	else:
-		user_id = origin['user']['pk']
-		username = origin['user']['username']
-		print('Set Origin to', username, 'with ID', user_id)
+		print('Set Origin to', origin_name, 'with ID', origin['user']['pk'])
 
 	# open graph files
 	if not os.path.exists('./userdata/'):
 		os.makedirs('userdata')            
 	edges = open("./userdata/edges.csv",'a')
 	user_details = open ("./userdata/user_details.csv",'a')
-	
-	
 
-	crawl(api, origin, fifo, max_following, max_followers, max_collect_users, max_collect_media)
+
+	crawl(api, origin, fifo, config)
 
 	# close files
-	
 	edges.close()
 	user_details.close()
-
-
-
-  # for username in usernames:
-  #   print('Extracting information from ' + username)
-  #   information = extract_information(browser, username)
-
-  #   with open('./profiles/' + username + '.json', 'w') as fp:
-  #     json.dump(information, fp)
 
