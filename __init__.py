@@ -1,6 +1,8 @@
 import json
 import os.path
 import argparse
+from collections import deque
+
 try:
 	from instagram_private_api import (
 		Client, __version__ as client_version)
@@ -24,7 +26,7 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	max_followers = 20                   # How many followers per user to collect
-	max_follows = 20                     # how many follows to collect per user
+	max_following = 20                     # how many follows to collect per user
 	max_collect_media = 10              # how many media items to be collected per person ?
 	max_collect_users = 20               # how many users in all to collect.
 
@@ -53,7 +55,9 @@ if __name__ == '__main__':
 	user_details = open ("./userdata/user_details.csv",'a')
 	
 	
-	crawl(origin, max_follows, max_followers, max_collect_users, max_collect_media)
+	# fifo = deque([])
+
+	crawl(api, origin, max_following, max_followers, max_collect_users, max_collect_media)
 
 	# close files
 	
