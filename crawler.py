@@ -1,9 +1,9 @@
-from collections import deque
 import json
 import os
+from collections import deque
 from re import findall
 from time import time
-from random import sample, shuffle
+from util import randselect, byteify
 
 def crawl(api, origin, que, config):
 	print('Crawling started at origin user', origin['user']['username'], 'with ID', origin['user']['pk'])
@@ -31,6 +31,7 @@ def visit_profile(api, user_id, config):
 				'media_count' : profile['user']['media_count'],
 				'follower_count' : profile['user']['follower_count'],
 				'following_count' : profile['user']['following_count'],
+				'posts' : []
 			}
 			feed = get_posts(api, user_id, config)
 			posts = [beautify_post(api, post) for post in feed]
@@ -123,21 +124,3 @@ def extend_que(following, followers, que, config):
 			float(user_id)
 		except ValueError:
 			raise Exception('wrong value put into que')
-
-def randselect(list, num):
-	l = len(list)
-	if l <= num:
-		return shuffle(list)
-	if l > 5*num: 
-		return sample(list[:5*num], num)
-
-def byteify(input):
-	if isinstance(input, dict):
-		return {byteify(key): byteify(value)
-				for key, value in input.iteritems()}
-	elif isinstance(input, list):
-		return [byteify(element) for element in input]
-	elif isinstance(input, unicode):
-		return input.encode('utf-8')
-	else:
-		return input
