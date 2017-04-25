@@ -1,6 +1,5 @@
 import json
 import os.path
-import logging
 import argparse
 try:
     from instagram_private_api import (
@@ -14,16 +13,11 @@ except ImportError:
 
 if __name__ == '__main__':
 
-    logging.basicConfig()
-    logger = logging.getLogger('instagram_private_api')
-    logger.setLevel(logging.WARNING)
-
     # Example command:
     # python examples/savesettings_logincallback.py -u "yyy" -p "zzz" -settings "test_credentials.json"
     parser = argparse.ArgumentParser(description='Pagination demo')
     parser.add_argument('-u', '--username', dest='username', type=str, required=True)
     parser.add_argument('-p', '--password', dest='password', type=str, required=True)
-    parser.add_argument('-debug', '--debug', action='store_true')
 
     args = parser.parse_args()
     if args.debug:

@@ -26,32 +26,34 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 	config = {
-		'max_followers' : 3,                    # How many followers per user to collect
-		'max_following' : 3,                    # how many follows to collect per user
+		'search_algorithm' : 'BFS',               # Possible values: BFS, DFS
+		'profile_path' : './profiles',              # Path where output data gets saved
+		'max_followers' : 20,                    # How many followers per user to collect
+		'max_following' : 15,                    # how many follows to collect per user
 		'max_collect_media' : 50,                # how many media items to be collected per person. If time is specified, this is ignored
-		'max_collect_users' : 100,               # how many users in all to collect.
+		'max_collect_users' : 1,               # how many users in all to collect.
 		'min_timestamp' : int(time() - 60*60*24*30*2)         # up to how recent you want the posts to be in seconds
 		# 'min_timestamp' : None
 	}
-	fifo = deque([])
+	que = deque([])
 
 	# Connect
 	try:
 		if args.target:
-			origin_name = args.target
-		# elif args.targetfile:
-		# 	with open(args.targetfile, 'r') as file:
-		# 		fifo.extend([line in file][1:])
+			origin_names = [args.target]
+		elif args.targetfile:
+			with open(args.targetfile, 'r') as file:
+				origin_names = [line.strip().split() for line in file]
 		else:
 			raise Exception('No crawl target given. Provide a username with -t option or file of usernames with -f')
 
 		print('Client version: %s' % client_version)
+		print(origin_names)
 		api = Client(args.username, args.password)
-		origin = api.username_info(origin_name)
 	except Exception as e:
-		print("Unable to initiate API:", e)
+		raise Exception("Unable to initiate API:", e)
 	else:
-		print('Set Origin to', origin_name, 'with ID', origin['user']['pk'])
+		print("Initiating API")
 
 	# open graph files
 	if not os.path.exists('./userdata/'):
@@ -59,8 +61,8 @@ if __name__ == '__main__':
 	edges = open("./userdata/edges.csv",'a')
 	user_details = open ("./userdata/user_details.csv",'a')
 
-
-	crawl(api, origin, fifo, config)
+	for origin in (api.username_info(username) for username in origin_names):
+		crawl(api, origin, que, config)
 
 	# close files
 	edges.close()
