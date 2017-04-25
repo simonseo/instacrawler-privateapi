@@ -1,0 +1,9 @@
+profiles/
+profiles_example/
+__pycache__/
+lib/
+bin/
+*.json
+userdata/
+include/
+.Python
