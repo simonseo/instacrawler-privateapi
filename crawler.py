@@ -3,20 +3,26 @@ import os
 from collections import deque
 from re import findall
 from time import time
-from util import randselect, byteify
+from util import randselect, byteify, file_to_list
+import csv
 
-def crawl(api, origin, que, config):
+def crawl(api, origin,config, visited_nodes, skipped_nodes):
 	print('Crawling started at origin user', origin['user']['username'], 'with ID', origin['user']['pk'])
+	que = deque([])
 	que.append(origin['user']['pk'])
-	visited_nodes = []
 
-	while len(visited_nodes) < config['max_collect_users'] and len(que) > 0:
+	while len(visited_nodes) < config['max_collect_users']:
 		user_id = que.popleft()
-		if user_id in visited_nodes or user_id in skipped_nodes: continue
+		if user_id in visited_nodes or user_id in skipped_nodes:
+			continue
 		if visit_profile(api, user_id, config):
 			visited_nodes.append(user_id)
+		else:
+			skipped_nodes.append(user_id)
 		following, followers = get_community(api, user_id, config)
 		extend_que(following, followers, que, config)
+		if len(que) <= 0:
+			raise Exception('Que empty!')
 
 def visit_profile(api, user_id, config):
 	while True:
