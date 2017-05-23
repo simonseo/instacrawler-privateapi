@@ -25,16 +25,20 @@ if __name__ == '__main__':
 	parser.add_argument('-p', '--password', dest='password', type=str, required=True)
 	parser.add_argument('-f', '--targetfile', dest='targetfile', type=str, required=False)
 	parser.add_argument('-t', '--target', dest='target', type=str, required=False)
+	parser.add_argument('--hashtag', dest='use_hashtag', action='store_true')
+	parser.set_defaults(use_hashtag=False)
 
 	args = parser.parse_args()
 	config = {
 		'search_algorithm' : 'BFS',               # Possible values: BFS, DFS
 		'profile_path' : './profiles',              # Path where output data gets saved
-		'max_followers' : 5,                    # How many followers per user to collect
-		'max_following' : 10,                    # how many follows to collect per user
-		'max_collect_media' : 50,                # how many media items to be collected per person. If time is specified, this is ignored
-		'max_collect_users' : 2000,               # how many users to collect in total.
-		'min_timestamp' : int(time() - 60*60*24*30*2)         # up to how recent you want the posts to be in seconds. If you do not want to use this, put None as value
+		'max_followers' : 10,                    # How many followers per user to collect
+		'max_following' : 15,                    # how many follows to collect per user
+		'min_collect_media' : 10,                # how many media items to be collected per person/hashtag. If time is specified, this is ignored
+		'max_collect_media' : 10,                # how many media items to be collected per person/hashtag. If time is specified, this is ignored
+		'max_collect_users' : 1000,               # how many users to collect in total.
+		# 'min_timestamp' : int(time() - 60*60*24*30*2)         # up to how recent you want the posts to be in seconds. If you do not want to use this, put None as value
+		'min_timestamp' : None
 	}
 
 	try:
@@ -65,11 +69,14 @@ if __name__ == '__main__':
 	try:
 		jobs = []
 		for origin in (api.username_info(username) for username in origin_names):
+			# crawl(api, origin, config, visited_nodes, skipped_nodes)
 			p = mp.Process(target=crawl, args=(api, origin, config, visited_nodes, skipped_nodes))
 			jobs.append(p)
 			p.start()
 	except KeyboardInterrupt:
 		print('Jobs terminated')
+	except Exception as e:
+		print(e)
 	for p in jobs:
 		p.join()
 

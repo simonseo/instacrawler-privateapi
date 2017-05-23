@@ -14,6 +14,7 @@ def crawl(api, origin,config, visited_nodes, skipped_nodes):
 	while len(visited_nodes) < config['max_collect_users']:
 		user_id = que.popleft()
 		if user_id in visited_nodes or user_id in skipped_nodes:
+			print('Already visited or skipped')
 			continue
 		if visit_profile(api, user_id, config):
 			visited_nodes.append(user_id)
@@ -41,14 +42,20 @@ def visit_profile(api, user_id, config):
 			}
 			feed = get_posts(api, user_id, config)
 			posts = [beautify_post(api, post) for post in feed]
-			processed_profile['posts'] = list(filter(lambda x: not x is None, posts))
+			posts = list(filter(lambda x: not x is None, posts))
+			if len(posts) < config['min_collect_media']:
+				return False
+			else:
+				processed_profile['posts'] = posts[:config['max_collect_media']]
 
 			if not os.path.exists(config['profile_path'] + os.sep): os.makedirs(config['profile_path'])  
 			with open(config['profile_path'] + os.sep + str(user_id) + '.json', 'w') as file:
 				json.dump(processed_profile, file, indent=2)
 		except Exception as e:
-			print(e)
+			print('exception while visiting profile', e)
 			if api.friendships_show(user_id)['is_private']:
+				return False
+			if str(e) == '-':
 				return False
 		else:
 			return True
@@ -109,7 +116,7 @@ def get_community(api, user_id, config):
 			return following, followers
 			following, followers = get_community(api, user_id, config)
 		except Exception as e:
-			print(e)
+			print('exception while getting community', e)
 		else:
 			break
 
@@ -124,7 +131,7 @@ def extend_que(following, followers, que, config):
 		else:
 			raise Exception('Please provide proper search algorithm in config (BFS or DFS)')
 	except Exception as e:
-		print(e)
+		print('exception while extending que', e)
 	for user_id in que:
 		try:
 			float(user_id)
