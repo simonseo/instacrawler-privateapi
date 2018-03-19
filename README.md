@@ -1,23 +1,61 @@
 # Instagram Crawler
-This crawler was made because most of the crawlers out there seems to either require a browser or a developer account. This Instagram crawler utilizes a private API of Instagram and thus no developer account is required.
+This crawler was made because most of the crawlers out there seems to either require a browser or a developer account. This Instagram crawler utilizes a private API of Instagram and thus no developer account is required. However, it needs your Instagram account information as it uses your user endpoints. 
+
+Instagram may or may not approve of this method. It is known to regularly shut down user accounts that are suspected of traffic hoarding. Use at your own risk.
+
+This README assumes, to an extent, the reader's knowledge of [graphs](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)) and [graph search algorithms](https://en.wikipedia.org/wiki/Graph_traversal#Graph_traversal_algorithms). Regardless, there shouldn't be a big problem understanding it. 
 
 ## Installation
 First install [Instagram Private API](https://github.com/ping/instagram_private_api). Kudos for a great project!
-```
-$ pip install git+https://github.com/ping/instagram_private_api.git
+```sh
+$ pip install git+https://github.com/ping/instagram_private_api.git@1.2.7
 ```
 
-Now run `__init__.py`. It'll provide you with the command options. If this shows up, everything probably works
+Then download or clone this project into a folder.
+```sh
+$ git clone https://github.com/simonseo/instacrawler-privateapi.git
 ```
+
+[Sign up to Instagram](https://www.instagram.com/) if you don't have an account. Take note of your username and password.
+
+
+## Get Crawlin'
+
+Now if you try to run `__init__.py` in the project folder from a shell, it'll provide you with the command options. If this shows up, everything probably works. Also try `python __init.py__ -h` for more information regarding the options.
+```sh
 $ python __init__.py
 usage: __init__.py [-h] -u USERNAME -p PASSWORD [-f TARGETFILE] [-t TARGET]
 ```
 
-## Get Crawlin'
-To get crawlin', you need to provide your Instagram username and password, and either an Instagram ID (target) or a text file of Instagram IDs in each row (targetfile).
-Wait a bit and a folder will be made with all the profiles crawled.
+To get crawlin', you need to provide your 
+1. Instagram username
+1. Instagram passwor
+1. either an Instagram ID (target `-t`) or a text file of Instagram IDs in each row (targetfile `-f`)
 
-## Options
+### Examples
+#### Single Root Node
+In the case you want to start at one specific user node, provide the ID/username/handle with the option `-t`. `selenagomez` is a good place to start because this account is one of the most followed account.
+```sh
+$ python __init__.py -u <yourUsername> -p <yourPassword> -t selenagomez
+```
+
+#### Multiple Root Nodes
+In the case you want to crawl from multiple user nodes, list the IDs in a separate file and pass the filename with the `-f` option. Example:
+```sh
+$ python __init__.py -u <yourUsername> -p <yourPassword> -f "people I stalk.txt"
+```
+
+In `people I stalk.txt` you should have accounts that you want to start at. Here is an example of what's in the file if I want to crawl people who are interested in Selena Gomez, Donal Trump, and Vladimir Putin:
+```
+instagram
+selenagomez
+realdonaldtrump
+president_vladimir_putin
+```
+
+Wait a bit and a folder will be made with crawled profiles as json files.
+
+## Config
 Inside `__init__.py`, there is a config dictionary. Each config option is explained in the comments.
 Note that `min_collect_media` and `max_collect_media` is trumped if `min_timestamp` is provided as a number.
 ```
