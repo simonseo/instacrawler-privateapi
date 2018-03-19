@@ -45,7 +45,7 @@ In the case you want to crawl from multiple user nodes, list the IDs in a separa
 $ python __init__.py -u <yourUsername> -p <yourPassword> -f "people I stalk.txt"
 ```
 
-In `people I stalk.txt` you should have accounts that you want to start at. Here is an example of what's in the file if I want to crawl people who are interested in Selena Gomez, Donal Trump, and Vladimir Putin:
+In `people I stalk.txt` you should have accounts that you want to start at:
 ```
 instagram
 selenagomez
