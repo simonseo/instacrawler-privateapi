@@ -19,7 +19,7 @@ except ImportError:
 
 if __name__ == '__main__':
 	# Example command:
-	# python examples/savesettings_logincallback.py -u "yyy" -p "zzz" -target "names.txt"
+	# python examples/savesettings_logincallback.py -u "yyy" -p "zzz" --targetfile "names.txt"
 	parser = argparse.ArgumentParser(description='Crawling')
 	parser.add_argument('-u', '--username', dest='username', type=str, required=True)
 	parser.add_argument('-p', '--password', dest='password', type=str, required=True)
