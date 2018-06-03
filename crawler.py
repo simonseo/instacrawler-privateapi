@@ -95,20 +95,21 @@ def get_community(api, user_id, config):
 	while True:
 		try:
 			following = []
-			results = api.user_following(user_id)
+			uuid = api.generate_uuid(return_hex=False, seed='0')
+			results = api.user_following(user_id, rank_token=uuid)
 			following.extend(results.get('users', []))
 			next_max_id = results.get('next_max_id')
 			while next_max_id and len(following) < config['max_following']:
-				results = api.user_following(user_id, max_id=next_max_id)
+				results = api.user_following(user_id, rank_token=uuid, max_id=next_max_id)
 				following.extend(results.get('users', []))
 				next_max_id = results.get('next_max_id')
 
 			followers = []
-			results = api.user_followers(user_id)
+			results = api.user_followers(user_id, rank_token=uuid)
 			followers.extend(results.get('users', []))
 			next_max_id = results.get('next_max_id')
 			while next_max_id and len(followers) < config['max_followers']:
-				results = api.user_followers(user_id, max_id=next_max_id)
+				results = api.user_followers(user_id, rank_token=uuid, max_id=next_max_id)
 				followers.extend(results.get('users', []))
 				next_max_id = results.get('next_max_id')
 

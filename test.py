@@ -31,7 +31,7 @@ if __name__ == '__main__':
     user_id = origin['user']['pk']
     followers = []
     print(api.user_info(user_id))
-    results = api.user_followers(user_id)
+    results = api.user_followers(user_id, rank_token=uuid)
 
     followers.extend(results.get('users', []))
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
             pass
-        results = api.user_followers(user_id, max_id=next_max_id)
+        results = api.user_followers(user_id, rank_token=uuid, max_id=next_max_id)
         followers.extend(results.get('users', []))
         if len(followers) >= 500:       # get only first 600 or so
             break
